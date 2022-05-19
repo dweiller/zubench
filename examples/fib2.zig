@@ -28,11 +28,11 @@ pub fn main() !void {
 
     var progress = std.Progress{};
 
-    var bm = try bench.Benchmark(fib).init(allocator, "fib()", .{20}, 10, &progress);
+    var bm = try bench.Benchmark(fib).init(allocator, "fib()", .{35}, 20, &progress);
     const report = bm.run();
     bm.deinit();
 
-    var bm_fast = try bench.Benchmark(fibFast).init(allocator, "fibFast()", .{20}, 10, &progress);
+    var bm_fast = try bench.Benchmark(fibFast).init(allocator, "fibFast()", .{35}, 1_000_000, &progress);
     const report_fast = bm_fast.run();
     bm_fast.deinit();
 

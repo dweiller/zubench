@@ -1,23 +1,23 @@
 # zubench
 
-A micro-benchmarking package for [zig](https://ziglang.org).
+A micro-benchmarking package for [Zig](https://ziglang.org).
 
 ## goals
 
-The primary goals of `zig-bench` are to:
+The primary goals of **zubench** are to:
 
   - be simple to use - there should be no need to wrap a function just to benchmark it
   - provide standard machine-readable output for archiving or post-processing
   - given the user the choice of which system clock(s) to use
   - provide statistically relevant and accurate results
-  - integrate with the zig build system
+  - integrate with the Zig build system
 
 Not all these goals are currently met, and its always possible to debate how well they are met; feel free to open an issue (if one doesn't exist) or pull request if you would like to see improvement in one of these areas.
 
 ## features
 
   - [x] human-readable terminal-style output
-  - [x] machine-readable json output
+  - [x] machine-readable JSON output
   - [x] wall, process, and thread time
   - [ ] kernel/user mode times
   - [ ] declarative `zig test` style benchmark runner
@@ -41,13 +41,13 @@ The planned build system integration is not yet implemented. In the meantime it 
 
 ```zig
 var progress = std.Progress{};
-var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, max_iterations, &progress);
+var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, max_samples, &progress);
 const report = bm.run();
 bm.deinit();
 ```
 
-The `report` then holds a statistical summary of the benchmark and can used with `std.io.Writer.print` (for terminal-style readable output), `std.json.stringify` (for json output). See `examples/` for complete examples.
+The `report` then holds a statistical summary of the benchmark and can used with `std.io.Writer.print` (for terminal-style readable output) or `std.json.stringify` (for JSON output). See `examples/` for complete examples.
 
 ## status
 
-`zubench` is in early development—the API is not stable at the moment and experiments with the API are planned, so feel free to make suggestions for the API or features you would find useful.
+**zubench** is in early development—the API is not stable at the moment and experiments with the API are planned, so feel free to make suggestions for the API or features you would find useful.

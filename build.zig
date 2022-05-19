@@ -12,6 +12,7 @@ pub fn build(b: *std.build.Builder) void {
 
     const fib2 = b.addExecutable("fib2", "examples/fib2.zig");
     fib2.addPackage(bench);
+    fib2.setBuildMode(mode);
     fib2.install();
 
     const examples_step = b.step("examples", "Build the examples");
