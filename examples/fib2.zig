@@ -1,7 +1,7 @@
 const std = @import("std");
-const bench = @import("bench");
+const zubench = @import("zubench");
 
-pub const sample_spec = [_]bench.Clock{ .real, .process, .thread };
+pub const sample_spec = [_]zubench.Clock{ .real, .process, .thread };
 // pray to the stack-overflow gods 🙏
 fn fib(n: u32) u32 {
     return if (n == 0)
@@ -28,11 +28,11 @@ pub fn main() !void {
 
     var progress = std.Progress{};
 
-    var bm = try bench.Benchmark(fib).init(allocator, "fib()", .{35}, 20, &progress);
+    var bm = try zubench.Benchmark(fib).init(allocator, "fib()", .{35}, 20, &progress);
     const report = bm.run();
     bm.deinit();
 
-    var bm_fast = try bench.Benchmark(fibFast).init(allocator, "fibFast()", .{35}, 1_000_000, &progress);
+    var bm_fast = try zubench.Benchmark(fibFast).init(allocator, "fibFast()", .{35}, 1_000_000, &progress);
     const report_fast = bm_fast.run();
     bm_fast.deinit();
 

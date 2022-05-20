@@ -1,8 +1,8 @@
 const std = @import("std");
 
-const bench = std.build.Pkg{
-    .name = "bench",
-    .path = .{ .path = "src/bench.zig" },
+const zubench = std.build.Pkg{
+    .name = "zubench",
+    .path = .{ .path = rootDir() ++ "/src/bench.zig" },
 };
 
 pub fn build(b: *std.build.Builder) void {
@@ -11,7 +11,7 @@ pub fn build(b: *std.build.Builder) void {
     const mode = b.standardReleaseOptions();
 
     const fib2 = b.addExecutable("fib2", "examples/fib2.zig");
-    fib2.addPackage(bench);
+    fib2.addPackage(zubench);
     fib2.setBuildMode(mode);
 
     const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe);
@@ -40,6 +40,14 @@ pub fn build(b: *std.build.Builder) void {
     test_step.dependOn(&main_tests.step);
 }
 
+fn rootDir() []const u8 {
+    return std.fs.path.dirname(@src().file) orelse ".";
+}
+
+const bench_runner_path = path: {
+    break :path rootDir() ++ "/src/bench_runner.zig";
+};
+
 pub fn addBench(
     b: *std.build.Builder,
     path: []const u8,
@@ -59,11 +67,12 @@ pub fn addBench(
     const root = std.build.Pkg{
         .name = "@bench",
         .path = .{ .path = path },
-        .dependencies = &.{bench},
+        .dependencies = &.{zubench},
     };
 
-    const exe = b.addExecutable(name, "src/bench_runner.zig");
+    const exe = b.addExecutable(name, bench_runner_path);
     exe.addPackage(root);
+    exe.addPackage(zubench);
     exe.setBuildMode(mode);
 
     return exe;

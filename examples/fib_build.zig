@@ -1,8 +1,8 @@
 const std = @import("std");
-const bench = @import("bench");
+const zubench = @import("zubench");
 
 // uncomment this to explicitly specify which clocks to use
-// pub const sample_spec = [_]bench.Clock{ .real, .process, .thread };
+// pub const sample_spec = [_]zubench.Clock{ .real, .process, .thread };
 
 fn fib(n: u32) u32 {
     return if (n == 0)
@@ -24,6 +24,6 @@ fn fibFast(n: u32) u32 {
 
 
 pub const benchmarks = .{
-    .@"fib()" = bench.Spec(fib){ .args = .{35}, .max_samples = 20 },
-    .@"fibFast()" = bench.Spec(fibFast){ .args = .{35}, .max_samples = 1_000_000 },
+    .@"fib()" = zubench.Spec(fib){ .args = .{35}, .max_samples = 20 },
+    .@"fibFast()" = zubench.Spec(fibFast){ .args = .{35}, .max_samples = 1_000_000 },
 };
