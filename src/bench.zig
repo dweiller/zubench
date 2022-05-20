@@ -204,7 +204,7 @@ pub fn Benchmark(func: anytype) type {
                             std.debug.panic("Benchmarked function returned error {s}", .{err});
                         };
                     },
-                    else => _ = @call(.{}, func, self.args),
+                    else => _ = @call(.{ .modifier = .never_inline }, func, self.args),
                 }
 
                 var sample: Sample = undefined;
