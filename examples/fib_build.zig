@@ -23,6 +23,6 @@ fn fibFast(n: u32) u32 {
 
 
 pub const benchmarks = .{
-    .@"fib()" = .{ .args = std.meta.ArgsTuple(@TypeOf(fib)){35}, .func = fib, .max_samples = 20 },
-    .@"fibFast()" = .{ .args = std.meta.ArgsTuple(@TypeOf(fibFast)){35}, .func = fibFast, .max_samples = 1_000_000 },
+    .@"fib()" = bench.Spec(fib){ .args = .{35}, .max_samples = 20 },
+    .@"fibFast()" = bench.Spec(fibFast){ .args = .{35}, .max_samples = 1_000_000 },
 };
