@@ -13,13 +13,25 @@ pub fn build(b: *std.build.Builder) void {
     const fib2 = b.addExecutable("fib2", "examples/fib2.zig");
     fib2.addPackage(bench);
     fib2.setBuildMode(mode);
-    fib2.install();
 
     const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe);
 
-    const examples_step = b.step("examples", "Run the examples");
-    examples_step.dependOn(&fib2.run().step);
-    examples_step.dependOn(&fib_build.run().step);
+    const examples = [_]*std.build.LibExeObjStep{
+        fib2,
+        fib_build,
+    };
+
+    const examples_step = b.step("examples", "Build the examples");
+    const bench_step = b.step("run", "Run the examples");
+
+    for (examples) |example| {
+        const install = b.addInstallArtifact(example);
+        const run_cmd = example.run();
+        run_cmd.step.dependOn(&install.step);
+
+        examples_step.dependOn(&install.step);
+        bench_step.dependOn(&run_cmd.step);
+    }
 
     const main_tests = b.addTest("src/bench.zig");
     main_tests.setBuildMode(mode);
@@ -52,7 +64,7 @@ pub fn addBench(
 
     const exe = b.addExecutable(name, "src/bench_runner.zig");
     exe.addPackage(root);
-    exe.install();
     exe.setBuildMode(mode);
+
     return exe;
 }
