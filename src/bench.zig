@@ -10,15 +10,18 @@ const stats = @import("statistics.zig");
 
 pub const Clock = time.Clock;
 
-pub const sample_spec = if (@hasDecl(@import("root"), "sample_spec"))
-    @import("root").sample_spec
-else if (builtin.os.tag != .windows)
+pub const default_sample_spec = if (builtin.os.tag != .windows)
     [_]Clock{
         .real,
         .process,
     }
 else
     [_]Clock{.real};
+
+pub const sample_spec = if (@hasDecl(@import("root"), "sample_spec"))
+    @import("root").sample_spec
+else
+    default_sample_spec;
 
 fn StructArray(comptime T: type) type {
     var fields: [sample_spec.len]std.builtin.Type.StructField = undefined;

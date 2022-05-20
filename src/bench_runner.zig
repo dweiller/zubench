@@ -3,7 +3,10 @@ const bench = @import("bench.zig");
 const root = @import("@bench");
 const builtin = @import("builtin");
 
-pub const sample_spec = root.sample_spec;
+pub const sample_spec = if (@hasDecl(root, "sample_spec"))
+    root.sample_spec
+else
+    bench.default_sample_spec;
 
 pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

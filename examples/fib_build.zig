@@ -1,7 +1,8 @@
 const std = @import("std");
 const bench = @import("bench");
 
-pub const sample_spec = [_]bench.Clock{ .real, .process, .thread };
+// uncomment this to explicitly specify which clocks to use
+// pub const sample_spec = [_]bench.Clock{ .real, .process, .thread };
 
 fn fib(n: u32) u32 {
     return if (n == 0)
