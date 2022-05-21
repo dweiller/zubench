@@ -29,11 +29,11 @@ pub fn main() !void {
     var progress = std.Progress{};
 
     var bm = try zubench.Benchmark(fib).init(allocator, "fib()", .{35}, 20, &progress);
-    const report = bm.run();
+    const report = try bm.run();
     bm.deinit();
 
     var bm_fast = try zubench.Benchmark(fibFast).init(allocator, "fibFast()", .{35}, 1_000_000, &progress);
-    const report_fast = bm_fast.run();
+    const report_fast = try bm_fast.run();
     bm_fast.deinit();
 
     const stdout = std.io.getStdOut().writer();

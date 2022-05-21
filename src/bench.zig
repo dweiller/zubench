@@ -134,13 +134,21 @@ pub const Report = struct {
     // in the interrupt handler
     mode: []const u8 = @tagName(builtin.mode),
     name: []const u8,
+    total_runs: usize,
+    discarded_runs: u64 = 0,
     results: RunStats,
 
     pub fn format(value: Report, comptime fmt: []const u8, options: std.fmt.FormatOptions, writer: anytype) !void {
         _ = options;
         _ = fmt;
 
-        try writer.print("  » {s}\n", .{value.name});
+        const header_fmt =
+            \\  » {s}
+            \\    discarded {d} outliers from {d} runs ({d:.2}% of total runs)
+            \\
+        ;
+        const pct = @intToFloat(f32, value.discarded_runs) / @intToFloat(f32, value.total_runs) * 100;
+        try writer.print(header_fmt, .{ value.name, value.discarded_runs, value.total_runs, pct });
         const counter_fmt =
             \\      {s}:
             \\        mean: {d: >6.2}
@@ -193,12 +201,55 @@ pub fn Benchmark(func: anytype) type {
             self.name = undefined;
         }
 
-        pub fn run(self: *@This()) Report {
-            const max_iterations = self.ctx.samples.multi_array_list.capacity;
+        // returns a new `Samples` that contains the samples that
+        // have 'MAD z-score' for each eounter less than or equal to `cutoff`.
+        //
+        // The 'MAD z-score' is the z-score ((x-μ)/σ) with mean replaced by median and
+        // standard deviation replaced by median absolute deviation from the median.
+        //
+        // Assuming a normal distribution, it would make sense to set `cutoff` to `n * 1.4286`,
+        // where `n` is the cutoff for z-scores you want to keep.
+        pub fn cleanSamples(self: *@This(), cutoff: f32) !Samples {
+            const mul_ar = self.ctx.samples.multi_array_list;
+            const max_len = mul_ar.len;
+            var result = try Samples.init(self.allocator, max_len);
+            // assuming that the length of `self` is less than `maxInt(u16)`
+            var centre: [sample_fields.len]f32 = undefined;
+            var dispersion: [sample_fields.len]f32 = undefined;
+            const slice = mul_ar.slice();
+            {
+                var buf = try self.allocator.alloc(u64, max_len);
+                defer self.allocator.free(buf);
+                inline for (sample_fields) |_, i| {
+                    const data = slice.items(@intToEnum(std.meta.FieldEnum(Sample), i));
+                    std.mem.copy(u64, buf, data);
+                    centre[i] = stats.median(buf);
+                    dispersion[i] = stats.medianAbsDev(buf, centre[i]);
+                }
+            }
+
+            var i: usize = 0;
+            while (i < max_len) : (i += 1) {
+                const sample = mul_ar.get(i);
+                var outlier = false;
+                inline for (sample_fields) |field, j| {
+                    const zscore = stats.zScore(dispersion[j], centre[j], @field(sample, field.name));
+                    outlier = outlier or zscore > cutoff;
+                }
+                if (!outlier) {
+                    result.append(sample);
+                }
+            }
+            return result;
+        }
+
+        pub fn run(self: *@This()) !Report {
+            const mul_ar = &self.ctx.samples.multi_array_list;
+            const max_iterations = mul_ar.capacity;
             const node = self.progress.start(self.name, max_iterations);
             node.activate();
 
-            while (self.ctx.samples.multi_array_list.len < self.ctx.samples.multi_array_list.capacity) {
+            while (mul_ar.len < mul_ar.capacity) {
                 resetCounters(&self.ctx.counters);
 
                 switch (@typeInfo(@typeInfo(@TypeOf(func)).Fn.return_type.?)) {
@@ -223,9 +274,14 @@ pub fn Benchmark(func: anytype) type {
             }
             node.end();
 
+            const cutoff = 1.4286 * 10.0;
+            var cleaned_samples = try self.cleanSamples(cutoff);
+            defer cleaned_samples.deinit(self.allocator);
             return Report{
                 .name = self.name,
-                .results = self.ctx.samples.generateStatistics(),
+                .results = cleaned_samples.generateStatistics(),
+                .discarded_runs = cleaned_samples.multi_array_list.capacity - cleaned_samples.multi_array_list.len,
+                .total_runs = cleaned_samples.multi_array_list.capacity,
             };
         }
     };

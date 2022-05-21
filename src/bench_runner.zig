@@ -31,7 +31,7 @@ pub fn main() !void {
             &progress,
         );
         defer benchmark.deinit();
-        results.appendAssumeCapacity(benchmark.run());
+        results.appendAssumeCapacity(try benchmark.run());
     }
 
     const stdout = std.io.getStdOut().writer();
