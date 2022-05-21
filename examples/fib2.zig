@@ -28,11 +28,25 @@ pub fn main() !void {
 
     var progress = std.Progress{};
 
-    var bm = try zubench.Benchmark(fib).init(allocator, "fib()", .{35}, 20, &progress);
+    var bm = try zubench.Benchmark(fib).init(
+        allocator,
+        "fib()",
+        .{35},
+        .{ .outlier_detection = .none }, //disable MAD-base outlier detection
+        20,
+        &progress,
+    );
     const report = try bm.run();
     bm.deinit();
 
-    var bm_fast = try zubench.Benchmark(fibFast).init(allocator, "fibFast()", .{35}, 1_000_000, &progress);
+    var bm_fast = try zubench.Benchmark(fibFast).init(
+        allocator,
+        "fibFast()",
+        .{35},
+        .{},
+        1_000_000,
+        &progress,
+    );
     const report_fast = try bm_fast.run();
     bm_fast.deinit();
 

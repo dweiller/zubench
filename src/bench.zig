@@ -168,11 +168,21 @@ pub const Report = struct {
     }
 };
 
+pub const Options = struct {
+    outlier_detection: Outlier = .{ .MAD = 1.4286 * 10.0 },
+
+    pub const Outlier = union(enum) {
+        none: void,
+        MAD: f32,
+    };
+};
+
 pub fn Benchmark(func: anytype) type {
     return struct {
         allocator: Allocator,
         name: []const u8,
         args: Args,
+        options: Options,
         progress: *std.Progress,
         ctx: Context,
 
@@ -183,6 +193,7 @@ pub fn Benchmark(func: anytype) type {
             allocator: Allocator,
             name: []const u8,
             args: Args,
+            options: Options,
             max_samples: usize,
             progress: *std.Progress,
         ) error{ TimerUnsupported, OutOfMemory }!@This() {
@@ -191,6 +202,7 @@ pub fn Benchmark(func: anytype) type {
                 .allocator = allocator,
                 .name = name,
                 .args = args,
+                .options = options,
                 .progress = progress,
                 .ctx = ctx,
             };
@@ -274,9 +286,12 @@ pub fn Benchmark(func: anytype) type {
             }
             node.end();
 
-            const cutoff = 1.4286 * 10.0;
-            var cleaned_samples = try self.cleanSamples(cutoff);
-            defer cleaned_samples.deinit(self.allocator);
+            var cleaned_samples = switch (self.options.outlier_detection) {
+                .none => self.ctx.samples,
+                .MAD => |cutoff| try self.cleanSamples(cutoff),
+            };
+            defer if (self.options.outlier_detection != .none) cleaned_samples.deinit(self.allocator);
+
             return Report{
                 .name = self.name,
                 .results = cleaned_samples.generateStatistics(),
@@ -292,5 +307,6 @@ pub fn Spec(func: anytype) type {
         args: std.meta.ArgsTuple(@TypeOf(func)),
         max_samples: usize,
         func: @TypeOf(func) = func,
+        opts: Options = .{},
     };
 }

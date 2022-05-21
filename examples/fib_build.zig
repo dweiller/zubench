@@ -22,8 +22,12 @@ fn fibFast(n: u32) u32 {
     return @floatToInt(u32, (phi_n - psi_n) / @sqrt(5.0));
 }
 
-
 pub const benchmarks = .{
-    .@"fib()" = zubench.Spec(fib){ .args = .{35}, .max_samples = 20 },
+    .@"fib()" = zubench.Spec(fib){
+        .args = .{35},
+        .max_samples = 20,
+        .opts = .{ .outlier_detection = .none }, // disable MAD-base outlier detection
+    },
+    // by default use MAD-based outlier detection
     .@"fibFast()" = zubench.Spec(fibFast){ .args = .{35}, .max_samples = 1_000_000 },
 };

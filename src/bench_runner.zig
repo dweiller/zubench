@@ -27,6 +27,7 @@ pub fn main() !void {
             allocator,
             field.name,
             spec.args,
+            spec.opts,
             spec.max_samples,
             &progress,
         );
