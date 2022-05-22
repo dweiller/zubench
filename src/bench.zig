@@ -303,6 +303,13 @@ pub fn Benchmark(func: anytype) type {
 }
 
 pub fn Spec(func: anytype) type {
+    if (@typeInfo(@TypeOf(func)).Fn.args.len == 0)
+        return struct {
+            args: std.meta.ArgsTuple(@TypeOf(func)) = .{},
+            max_samples: usize,
+            func: @TypeOf(func) = func,
+            opts: Options = .{},
+        };
     return struct {
         args: std.meta.ArgsTuple(@TypeOf(func)),
         max_samples: usize,

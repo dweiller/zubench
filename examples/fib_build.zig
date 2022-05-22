@@ -22,6 +22,10 @@ fn fibFast(n: u32) u32 {
     return @floatToInt(u32, (phi_n - psi_n) / @sqrt(5.0));
 }
 
+fn fib10() u32 {
+    return fibFast(10);
+}
+
 pub const benchmarks = .{
     .@"fib()" = zubench.Spec(fib){
         .args = .{35},
@@ -30,4 +34,6 @@ pub const benchmarks = .{
     },
     // by default use MAD-based outlier detection
     .@"fibFast()" = zubench.Spec(fibFast){ .args = .{35}, .max_samples = 1_000_000 },
+    // 0-ary functions do not need .args field
+    .@"fib10()" = zubench.Spec(fib10){ .max_samples = 1_000 },
 };
