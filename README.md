@@ -22,6 +22,7 @@ Not all these goals are currently met, and its always possible to debate how wel
   - [ ] kernel/user mode times
   - [x] declarative `zig test` style benchmark runner
   - [ ] adaptive sample sizes
+  - [x] [MAD](https://en.wikipedia.org/wiki/Median_absolute_deviation)-based outlier rejection
 
 ## platforms
 
@@ -60,7 +61,10 @@ This will make `zig build bench` run the benchmarks in `src/file.zig`, and print
 const bench = @import("src/bench.zig");
 pub const benchmarks = .{
     .@"benchmark func1" = bench.Spec(func1){ .args = .{ arg1, arg2 }, .max_samples = 100 },
-    .@"benchmark func2" = bench.Spec(func2){ .args = .{ arg1, arg2, arg3 }, .max_samples = 1000 },
+    .@"benchmark func2" = bench.Spec(func2){
+        .args = .{ arg1, arg2, arg3 },
+        .max_samples = 1000,
+        .opts = .{ .outlier_detection = .none }}, // disable outlier detection
 }
 ```
 
@@ -70,7 +74,7 @@ It is also relatively straightforward to write a standalone executable to perfor
 
 ```zig
 var progress = std.Progress{};
-var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, max_samples, &progress);
+var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, .{}, max_samples, &progress);
 const report = bm.run();
 bm.deinit();
 ```
