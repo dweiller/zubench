@@ -2,7 +2,7 @@ const std = @import("std");
 
 const zubench = std.build.Pkg{
     .name = "zubench",
-    .path = .{ .path = rootDir() ++ "/src/bench.zig" },
+    .source = .{ .path = rootDir() ++ "/src/bench.zig" },
 };
 
 pub fn build(b: *std.build.Builder) void {
@@ -14,7 +14,7 @@ pub fn build(b: *std.build.Builder) void {
     fib2.addPackage(zubench);
     fib2.setBuildMode(mode);
 
-    const fib_build = addBench(b, "examples/fib_build.zig", mode);
+    const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe);
 
     const examples = [_]*std.build.LibExeObjStep{
         fib2,
@@ -66,7 +66,7 @@ pub fn addBench(
 
     const root = std.build.Pkg{
         .name = "@bench",
-        .path = .{ .path = path },
+        .source = .{ .path = path },
         .dependencies = &.{zubench},
     };
 
