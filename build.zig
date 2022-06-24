@@ -52,6 +52,7 @@ pub fn addBench(
     b: *std.build.Builder,
     path: []const u8,
     mode: std.builtin.Mode,
+    dependencies: []const std.build.Pkg,
 ) *std.build.LibExeObjStep {
     const basename = std.fs.path.basename(path);
     const no_ext = if (std.mem.lastIndexOfScalar(u8, basename, '.')) |index|
@@ -64,10 +65,14 @@ pub fn addBench(
         @tagName(mode),
     }) catch unreachable;
 
+    var deps = b.allocator.alloc(std.build.Pkg, dependencies.len + 1) catch unreachable;
+    std.mem.copy(std.build.Pkg, deps, dependencies);
+
+    deps[deps.len - 1] = zubench;
     const root = std.build.Pkg{
         .name = "@bench",
         .source = .{ .path = path },
-        .dependencies = &.{zubench},
+        .dependencies = deps,
     };
 
     const exe = b.addExecutable(name, bench_runner_path);
