@@ -177,7 +177,7 @@ pub const Options = struct {
     };
 };
 
-pub fn Benchmark(func: anytype) type {
+pub fn Benchmark(comptime func: anytype) type {
     return struct {
         allocator: Allocator,
         name: []const u8,
@@ -302,7 +302,7 @@ pub fn Benchmark(func: anytype) type {
     };
 }
 
-pub fn Spec(func: anytype) type {
+pub fn Spec(comptime func: anytype) type {
     if (@typeInfo(@TypeOf(func)).Fn.args.len == 0)
         return struct {
             args: std.meta.ArgsTuple(@TypeOf(func)) = .{},
