@@ -14,7 +14,7 @@ pub fn build(b: *std.build.Builder) void {
     fib2.addPackage(zubench);
     fib2.setBuildMode(mode);
 
-    const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe);
+    const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe, &.{});
 
     const examples = [_]*std.build.LibExeObjStep{
         fib2,
