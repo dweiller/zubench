@@ -317,3 +317,7 @@ pub fn Spec(comptime func: anytype) type {
         opts: Options = .{},
     };
 }
+
+test {
+    std.testing.refAllDeclsRecursive(@This());
+}
