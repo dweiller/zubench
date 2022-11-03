@@ -267,7 +267,7 @@ pub fn Benchmark(comptime func: anytype) type {
                 switch (@typeInfo(@typeInfo(@TypeOf(func)).Fn.return_type.?)) {
                     .ErrorUnion => {
                         _ = @call(.{ .modifier = .never_inline }, func, self.args) catch |err| {
-                            std.debug.panic("Benchmarked function returned error {s}", .{err});
+                            std.debug.panic("Benchmark {s} returned error {s}", .{ self.name, err });
                         };
                     },
                     else => _ = @call(.{ .modifier = .never_inline }, func, self.args),
