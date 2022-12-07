@@ -21,6 +21,7 @@ Not all these goals are currently met, and its always possible to debate how wel
   - [x] wall, process, and thread time
   - [ ] kernel/user mode times
   - [x] declarative `zig test` style benchmark runner
+  - [x] option to define benchmarks as Zig tests
   - [ ] adaptive sample sizes
   - [x] [MAD](https://en.wikipedia.org/wiki/Median_absolute_deviation)-based outlier rejection
 
@@ -38,8 +39,64 @@ Some attempt has been made to work on the below platforms; those with a '️️�
 
 ## usage
 
-The simplest way to create and run benchmarks is using the Zig build system. All that is needed is to add
+The simplest way to create and run benchmarks is using one of the Zig build system integrations. There are currently two integrations, one utilising the Zig test system, and one utilising public declarations.
+
+Both integrations will compile an executable that takes a collection of functions to benchmark, runs them repeatedly and reports timing statistics. The differences between the two integrations are how you define benchmarks in your source files, and how benchmarking options are determined.
+
+### test integration
+The simplest way to define and run benchmarks is utilising the Zig test system. **zubench** will use a custom test runner to run the benchmarks. This means that benchmarks are simply Zig tests, i.e. `test { // code to benchmark }`. In order to avoid benchmarking regular tests when using this system, you should consider the way that Zig analyses test declarations and either give the names of benchmark tests a unique substring that can be used as a test filter or organise your tests so that when the compiller analyses the root file for benchmark tests, it will not analyse regular tests.
+
+The following snippets show how you can use this integration.
 ```zig
+const addTestBench = @import("zubench/build.zig").addTestBench;
+
+pub fn build(b: *std.build.Builder) void {
+    // existing build function
+    // ...
+
+    // benchmark all tests analysed by the compiler rooted in "src/file.zig", compiled in ReleaseSafe mode
+    const benchmark_exe = zubench.addTestBench(b, "src/file.zig", .ReleaseSafe);
+    // use a test filter to only benchmark tests whose name include the substring "bench"
+    // note that this is not required if the compiler will not analyse tests that you don't want to benchmark
+    benchmark_exe.setTestFilter("bench");
+
+    const bench_step = b.step("bench", "Run the benchmarks");
+    bench_step.dependOn(&benchmark_exe.run().step);
+}
+```
+This will make `zig build bench` benchmark tests the compiler analyses by starting at `src/file.zig`. `addTestBench()` returns a `*LibExeObjStep` for an executable that runs the benchmarks; you can integrate it into your `build.zig` however you wish. Benchmarks are `test` declarations the compiler analyses staring from `src/file.zig`:
+```zig
+// src/file.zig
+
+test "bench 1" {
+    // this will be benchmarked
+    // ...
+}
+
+test "also a benchmark" {
+    // this will be benchmarked
+    // ...
+}
+
+test {
+    // this will be benchmarked
+    // the test filter is ignored for unnamed tests
+    // ...
+}
+
+test "regular test" {
+    // this will not be benchmarked
+    return error.NotABenchmark;
+}
+```
+
+### public decl integration
+This integration allows for fine-grained control over the execution of benchmarks, allowing you to specify various options as well as benchmark functions that take parameters.
+
+The following snippets shows how you can use this integration.
+```zig
+// build.zig
+
 const addBench = @import("zubench/build.zig").addBench;
 
 pub fn build(b: *std.build.Builder) void {
@@ -53,7 +110,7 @@ pub fn build(b: *std.build.Builder) void {
     bench_step.dependOn(&benchmark_exe.run().step);
 }
 ```
-This will make `zig build bench` run the benchmarks in `src/file.zig`, and print the results. `addBench()` returns a `*LibExecObjStep` for an executable that runs the benchmarks; you can integrate it into your `build.zig` however you wish. Benchmarks are specified in `src/file.zig` by creating a `pub const benchmarks` declaration:
+This will make `zig build bench` run the benchmarks in `src/file.zig`, and print the results. `addBench()` returns a `*LibExeObjStep` for an executable that runs the benchmarks; you can integrate it into your `build.zig` however you wish. Benchmarks are specified in `src/file.zig` by creating a `pub const benchmarks` declaration:
 ```zig
 // add to src/file.zig
 
@@ -81,9 +138,13 @@ bm.deinit();
 
 The `report` then holds a statistical summary of the benchmark and can used with `std.io.Writer.print` (for terminal-style readable output) or `std.json.stringify` (for JSON output). See `examples/` for complete examples.
 
+### Custom exectuable
+
+It is also possible to write a custom benchmarking executable using **zubench** as a dependency. There is a simple example of this in `examples/fib2.zig` or, you can examine `src/bench_runner.zig`.
+
 ## examples
 
-Examples showing some ways of producing and running benchmarks can be found the `examples/` directory. Each of these files are built using the root `build.zig` file. The examples with the suffix `_build` utilise **zubench**'s integration with the Zig build system. All examples can be built using `zig build examples` and they can be run using `zig build run`.
+Examples showing some ways of producing and running benchmarks can be found the `examples/` directory. Each of these files are built using the root `build.zig` file. All examples can be built using `zig build examples` and they can be run using `zig build run`.
 
 ## status
 
