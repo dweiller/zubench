@@ -23,9 +23,10 @@ pub fn main() !void {
 
     inline for (benchmarks) |field| {
         const spec = @field(root.benchmarks, field.name);
-        var benchmark = try bench.Benchmark(spec.func).init(
+        var benchmark = try bench.Benchmark(@TypeOf(spec.func)).init(
             allocator,
             field.name,
+            spec.func,
             spec.args,
             spec.opts,
             spec.max_samples,

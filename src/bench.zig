@@ -177,21 +177,23 @@ pub const Options = struct {
     };
 };
 
-pub fn Benchmark(comptime func: anytype) type {
+pub fn Benchmark(comptime Func: type) type {
     return struct {
         allocator: Allocator,
         name: []const u8,
+        func: std.meta.FnPtr(Func),
         args: Args,
         options: Options,
         progress: *std.Progress,
         ctx: Context,
 
-        pub const Args = std.meta.ArgsTuple(@TypeOf(func));
+        pub const Args = std.meta.ArgsTuple(Func);
 
         /// borrows `name`; `name` should remain valid while the Benchmark (or its Report) is in use.
         pub fn init(
             allocator: Allocator,
             name: []const u8,
+            func: std.meta.FnPtr(Func),
             args: Args,
             options: Options,
             max_samples: usize,
@@ -201,6 +203,7 @@ pub fn Benchmark(comptime func: anytype) type {
             return @This(){
                 .allocator = allocator,
                 .name = name,
+                .func = func,
                 .args = args,
                 .options = options,
                 .progress = progress,
@@ -264,13 +267,13 @@ pub fn Benchmark(comptime func: anytype) type {
             while (mul_ar.len < mul_ar.capacity) {
                 resetCounters(&self.ctx.counters);
 
-                switch (@typeInfo(@typeInfo(@TypeOf(func)).Fn.return_type.?)) {
+                switch (@typeInfo(@typeInfo(Func).Fn.return_type.?)) {
                     .ErrorUnion => {
-                        _ = @call(.{ .modifier = .never_inline }, func, self.args) catch |err| {
-                            std.debug.panic("Benchmark {s} returned error {s}", .{ self.name, err });
+                        _ = @call(.{ .modifier = .never_inline }, self.func, self.args) catch |err| {
+                            std.debug.panic("Benchmark {s} returned error {s}", .{ self.name, @errorName(err) });
                         };
                     },
-                    else => _ = @call(.{ .modifier = .never_inline }, func, self.args),
+                    else => _ = @call(.{ .modifier = .never_inline }, self.func, self.args),
                 }
 
                 var sample: Sample = undefined;
