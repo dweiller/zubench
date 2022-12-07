@@ -18,3 +18,16 @@ pub fn fibFast(n: u32) u32 {
     const psi_n = std.math.pow(f32, psi, float_n);
     return @floatToInt(u32, (phi_n - psi_n) / @sqrt(5.0));
 }
+
+test "fibFast" {
+    _ = fibFast(35);
+}
+
+test "fib" {
+    _ = fib(35);
+}
+
+test "regular test" {
+    // this is not a benchmark
+    return error.NotABenchmark;
+}

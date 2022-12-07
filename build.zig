@@ -16,9 +16,13 @@ pub fn build(b: *std.build.Builder) void {
 
     const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe, &.{});
 
+    const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe);
+    fib_test.setFilter("fib");
+
     const examples = [_]*std.build.LibExeObjStep{
         fib2,
         fib_build,
+        fib_test,
     };
 
     const examples_step = b.step("examples", "Build the examples");
@@ -54,17 +58,7 @@ pub fn addBench(
     mode: std.builtin.Mode,
     dependencies: []const std.build.Pkg,
 ) *std.build.LibExeObjStep {
-    const basename = std.fs.path.basename(path);
-    const no_ext = if (std.mem.lastIndexOfScalar(u8, basename, '.')) |index|
-        basename[0..index]
-    else
-        basename;
-
-    const name = std.fmt.allocPrint(b.allocator, "zubench-{s}-{s}", .{
-        no_ext,
-        @tagName(mode),
-    }) catch unreachable;
-
+    const name = benchExeName(b.allocator, path, mode);
     var deps = b.allocator.alloc(std.build.Pkg, dependencies.len + 1) catch unreachable;
     std.mem.copy(std.build.Pkg, deps, dependencies);
 
@@ -77,8 +71,35 @@ pub fn addBench(
 
     const exe = b.addExecutable(name, bench_runner_path);
     exe.addPackage(root);
-    exe.addPackage(zubench);
     exe.setBuildMode(mode);
 
     return exe;
+}
+
+pub fn addTestBench(
+    b: *std.build.Builder,
+    path: []const u8,
+    mode: std.builtin.Mode,
+) *std.build.LibExeObjStep {
+    const name = benchExeName(b.allocator, path, mode);
+
+    const exe = b.addTestExe(name, path);
+    exe.setBuildMode(mode);
+    exe.setTestRunner(bench_runner_path);
+
+    return exe;
+}
+
+fn benchExeName(allocator: std.mem.Allocator, path: []const u8, mode: std.builtin.Mode) []const u8 {
+    const basename = std.fs.path.basename(path);
+    const no_ext = if (std.mem.lastIndexOfScalar(u8, basename, '.')) |index|
+        basename[0..index]
+    else
+        basename;
+
+    const name = std.fmt.allocPrint(allocator, "zubench-{s}-{s}", .{
+        no_ext,
+        @tagName(mode),
+    }) catch unreachable;
+    return name;
 }
