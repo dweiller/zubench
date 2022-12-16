@@ -269,11 +269,11 @@ pub fn Benchmark(comptime Func: type) type {
 
                 switch (@typeInfo(@typeInfo(Func).Fn.return_type.?)) {
                     .ErrorUnion => {
-                        _ = @call(.{ .modifier = .never_inline }, self.func, self.args) catch |err| {
+                        _ = @call(.never_inline, self.func, self.args) catch |err| {
                             std.debug.panic("Benchmark {s} returned error {s}", .{ self.name, @errorName(err) });
                         };
                     },
-                    else => _ = @call(.{ .modifier = .never_inline }, self.func, self.args),
+                    else => _ = @call(.never_inline, self.func, self.args),
                 }
 
                 var sample: Sample = undefined;
