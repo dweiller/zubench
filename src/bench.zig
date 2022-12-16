@@ -181,7 +181,7 @@ pub fn Benchmark(comptime Func: type) type {
     return struct {
         allocator: Allocator,
         name: []const u8,
-        func: std.meta.FnPtr(Func),
+        func: *const Func,
         args: Args,
         options: Options,
         progress: *std.Progress,
@@ -193,7 +193,7 @@ pub fn Benchmark(comptime Func: type) type {
         pub fn init(
             allocator: Allocator,
             name: []const u8,
-            func: std.meta.FnPtr(Func),
+            func: *const Func,
             args: Args,
             options: Options,
             max_samples: usize,
