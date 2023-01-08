@@ -28,7 +28,7 @@ fn StructArray(comptime T: type) type {
     inline for (fields) |*field, i| {
         field.* = .{
             .name = std.meta.tagName(sample_spec[i]),
-            .field_type = T,
+            .type = T,
             .default_value = null,
             .is_comptime = false,
             .alignment = @alignOf(T),
@@ -306,7 +306,7 @@ pub fn Benchmark(comptime Func: type) type {
 }
 
 pub fn Spec(comptime func: anytype) type {
-    if (@typeInfo(@TypeOf(func)).Fn.args.len == 0)
+    if (@typeInfo(@TypeOf(func)).Fn.params.len == 0)
         return struct {
             args: std.meta.ArgsTuple(@TypeOf(func)) = .{},
             max_samples: usize,
