@@ -5,14 +5,17 @@ const zubench = std.build.Pkg{
     .source = .{ .path = rootDir() ++ "/src/bench.zig" },
 };
 
-pub fn build(b: *std.build.Builder) void {
+pub fn build(b: *std.Build) void {
     // Standard release options allow the person running `zig build` to select
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
-    const mode = b.standardReleaseOptions();
+    const mode = b.standardOptimizeOption(.{});
 
-    const fib2 = b.addExecutable("fib2", "examples/fib2.zig");
+    const fib2 = b.addExecutable(.{
+        .name = "fib2",
+        .root_source_file = .{ .path = "examples/fib2.zig" },
+        .optimize = mode,
+    });
     fib2.addPackage(zubench);
-    fib2.setBuildMode(mode);
 
     const fib_build = addBench(b, "examples/fib_build.zig", .ReleaseSafe, &.{});
 
@@ -37,8 +40,10 @@ pub fn build(b: *std.build.Builder) void {
         bench_step.dependOn(&run_cmd.step);
     }
 
-    const main_tests = b.addTest("src/bench.zig");
-    main_tests.setBuildMode(mode);
+    const main_tests = b.addTest(.{
+        .root_source_file = .{ .path = "src/bench.zig" },
+        .optimize = mode,
+    });
 
     const test_step = b.step("test", "Run library tests");
     test_step.dependOn(&main_tests.step);
@@ -69,9 +74,12 @@ pub fn addBench(
         .dependencies = deps,
     };
 
-    const exe = b.addExecutable(name, bench_runner_path);
+    const exe = b.addExecutable(.{
+        .name = name,
+        .root_source_file = .{ .path = bench_runner_path },
+        .optimize = mode,
+    });
     exe.addPackage(root);
-    exe.setBuildMode(mode);
 
     return exe;
 }
@@ -83,8 +91,12 @@ pub fn addTestBench(
 ) *std.build.LibExeObjStep {
     const name = benchExeName(b.allocator, path, mode);
 
-    const exe = b.addTestExe(name, path);
-    exe.setBuildMode(mode);
+    const exe = b.addTest(.{
+        .name = name,
+        .kind = .test_exe,
+        .root_source_file = .{ .path = path },
+        .optimize = mode,
+    });
     exe.setTestRunner(bench_runner_path);
 
     return exe;
