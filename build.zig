@@ -59,14 +59,12 @@ fn rootDir() []const u8 {
     return std.fs.path.dirname(@src().file) orelse ".";
 }
 
-const bench_runner_path = path: {
-    break :path rootDir() ++ "/src/bench_runner.zig";
-};
+const bench_runner_path = rootDir() ++ "/src/bench_runner.zig";
 
 pub fn addBench(
-    b: *std.build.Builder,
+    b: *std.Build,
     path: []const u8,
-    mode: std.builtin.Mode,
+    mode: std.builtin.OptimizeMode,
     zubench_mod: *std.Build.Module,
     dependencies: []const std.Build.ModuleDependency,
 ) *std.Build.CompileStep {
@@ -91,9 +89,9 @@ pub fn addBench(
 }
 
 pub fn addTestBench(
-    b: *std.build.Builder,
+    b: *std.Build,
     path: []const u8,
-    mode: std.builtin.Mode,
+    mode: std.builtin.OptimizeMode,
 ) *std.Build.CompileStep {
     const name = benchExeName(b.allocator, path, mode);
 
