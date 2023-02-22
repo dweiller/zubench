@@ -25,9 +25,9 @@ else
 
 fn StructArray(comptime T: type) type {
     var fields: [sample_spec.len]std.builtin.Type.StructField = undefined;
-    inline for (fields) |*field, i| {
+    inline for (&fields, sample_spec) |*field, spec_elt| {
         field.* = .{
-            .name = std.meta.tagName(sample_spec[i]),
+            .name = std.meta.tagName(spec_elt),
             .type = T,
             .default_value = null,
             .is_comptime = false,
@@ -72,7 +72,7 @@ pub const Samples = struct {
     pub fn generateStatistics(self: Samples) RunStats {
         const slice = self.multi_array_list.slice();
         var result: RunStats = undefined;
-        inline for (sample_fields) |field, i| {
+        inline for (sample_fields, 0..) |field, i| {
             const values = slice.items(@intToEnum(std.meta.FieldEnum(Sample), i));
             const avg = stats.mean(values);
             const std_dev = stats.correctedSampleStdDev(values, avg);
@@ -88,8 +88,8 @@ pub const Samples = struct {
 
 fn startCounters() !Counters {
     var counters: Counters = undefined;
-    for (counters) |*counter, i| {
-        const clock_id = sample_spec[i].clockID();
+    for (&counters, sample_spec) |*counter, spec_elt| {
+        const clock_id = spec_elt.clockID();
         counter.* = try time.Timer.start(clock_id);
     }
     return counters;
@@ -235,7 +235,7 @@ pub fn Benchmark(comptime Func: type) type {
             {
                 var buf = try self.allocator.alloc(u64, max_len);
                 defer self.allocator.free(buf);
-                inline for (sample_fields) |_, i| {
+                inline for (sample_fields, 0..) |_, i| {
                     const data = slice.items(@intToEnum(std.meta.FieldEnum(Sample), i));
                     std.mem.copy(u64, buf, data);
                     centre[i] = stats.median(buf);
@@ -243,12 +243,15 @@ pub fn Benchmark(comptime Func: type) type {
                 }
             }
 
-            var i: usize = 0;
-            while (i < max_len) : (i += 1) {
+            for (0..max_len) |i| {
                 const sample = mul_ar.get(i);
                 var outlier = false;
-                inline for (sample_fields) |field, j| {
-                    const zscore = stats.zScore(dispersion[j], centre[j], @field(sample, field.name));
+                inline for (sample_fields, dispersion, centre) |field, dispersion_elt, centre_elt| {
+                    const zscore = stats.zScore(
+                        dispersion_elt,
+                        centre_elt,
+                        @field(sample, field.name),
+                    );
                     outlier = outlier or zscore > cutoff;
                 }
                 if (!outlier) {
@@ -277,8 +280,8 @@ pub fn Benchmark(comptime Func: type) type {
                 }
 
                 var sample: Sample = undefined;
-                inline for (sample_fields) |field, i| {
-                    @field(sample, field.name) = self.ctx.counters[i].read();
+                inline for (sample_fields, &self.ctx.counters) |field, *timer| {
+                    @field(sample, field.name) = timer.read();
                 }
 
                 // WARNING: append() increments samples.len BEFORE adding the data.

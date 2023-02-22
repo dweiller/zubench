@@ -42,10 +42,10 @@ pub fn median(samples: []u64) f32 {
 /// median absolute deviation central tendency
 /// modifies `samples`, make a copy if you need to keep the original data
 pub fn medianAbsDev(samples: []u64, centre: f32) f32 {
-    for (samples) |sample, i| {
+    for (samples) |*sample| {
         const val = @intToFloat(f32, sample);
         // WARNING: cast will bias result
-        samples[i] = if (val > centre)
+        samples.* = if (val > centre)
             @floatToInt(u64, val - centre)
         else
             @floatToInt(u64, centre - val);
