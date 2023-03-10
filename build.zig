@@ -5,8 +5,7 @@ pub fn build(b: *std.Build) void {
     // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
     const mode = b.standardOptimizeOption(.{});
 
-    b.addModule(.{
-        .name = "zubench",
+    const zubench = b.addModule("zubench", .{
         .source_file = .{ .path = "src/bench.zig" },
     });
 
@@ -15,13 +14,13 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "examples/fib2.zig" },
         .optimize = mode,
     });
-    fib2.addModule("zubench", b.modules.get("zubench").?);
+    fib2.addModule("zubench", zubench);
 
     const fib_build = addBench(
         b,
         "examples/fib_build.zig",
         .ReleaseSafe,
-        b.modules.get("zubench").?,
+        zubench,
         &.{},
     );
 
