@@ -1,5 +1,5 @@
 const std = @import("std");
-const bench = @import("bench.zig");
+const bench = @import("zubench");
 const root = @import("@bench");
 const builtin = @import("builtin");
 

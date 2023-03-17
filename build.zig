@@ -24,7 +24,7 @@ pub fn build(b: *std.Build) void {
         &.{},
     );
 
-    const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe);
+    const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe, zubench);
     fib_test.setFilter("fib");
 
     const examples = [_]*std.Build.CompileStep{
@@ -83,6 +83,7 @@ pub fn addBench(
         .optimize = mode,
     });
     exe.addModule("@bench", root);
+    exe.addModule("zubench", zubench_mod);
 
     return exe;
 }
@@ -91,16 +92,17 @@ pub fn addTestBench(
     b: *std.Build,
     path: []const u8,
     mode: std.builtin.OptimizeMode,
+    zubench_mod: *std.Build.Module,
 ) *std.Build.CompileStep {
     const name = benchExeName(b.allocator, path, mode);
 
     const exe = b.addTest(.{
         .name = name,
-        .kind = .test_exe,
         .root_source_file = .{ .path = path },
         .optimize = mode,
     });
     exe.setTestRunner(bench_runner_path);
+    exe.addModule("zubench", zubench_mod);
 
     return exe;
 }
