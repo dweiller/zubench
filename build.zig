@@ -25,7 +25,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe, zubench);
-    fib_test.setFilter("fib");
+    fib_test.filter = "fib";
 
     const examples = [_]*std.Build.CompileStep{
         fib2,
@@ -38,7 +38,13 @@ pub fn build(b: *std.Build) void {
 
     for (examples) |example| {
         const install = b.addInstallArtifact(example);
-        const run_cmd = example.run();
+        const run_cmd = b.addRunArtifact(example);
+
+        // NOTE: this works around Zig issue #15119 and should be removed when
+        //       Zig PR #15120 or an equivalent is merged
+        run_cmd.stdio = .infer_from_args;
+        while (run_cmd.argv.items.len > 1) _ = run_cmd.argv.pop();
+
         run_cmd.step.dependOn(&install.step);
 
         examples_step.dependOn(&install.step);
@@ -49,9 +55,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = .{ .path = "src/bench.zig" },
         .optimize = mode,
     });
+    const run_main_tests = b.addRunArtifact(main_tests);
 
     const test_step = b.step("test", "Run library tests");
-    test_step.dependOn(&main_tests.step);
+    test_step.dependOn(&run_main_tests.step);
 }
 
 fn rootDir() []const u8 {
@@ -100,8 +107,8 @@ pub fn addTestBench(
         .name = name,
         .root_source_file = .{ .path = path },
         .optimize = mode,
+        .test_runner = bench_runner_path,
     });
-    exe.setTestRunner(bench_runner_path);
     exe.addModule("zubench", zubench_mod);
 
     return exe;
