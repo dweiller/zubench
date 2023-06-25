@@ -27,7 +27,7 @@ fn StructArray(comptime T: type) type {
     var fields: [sample_spec.len]std.builtin.Type.StructField = undefined;
     inline for (&fields, sample_spec) |*field, spec_elt| {
         field.* = .{
-            .name = std.meta.tagName(spec_elt),
+            .name = @tagName(spec_elt),
             .type = T,
             .default_value = null,
             .is_comptime = false,
