@@ -7,20 +7,20 @@ pub fn mean(samples: []const u64) f32 {
     for (samples) |sample| {
         acc += sample;
     }
-    return @floatFromInt(f32, acc) / @floatFromInt(f32, samples.len);
+    return @as(f32, @floatFromInt(acc)) / @as(f32, @floatFromInt(samples.len));
 }
 
 fn totalSquaredError(samples: []const u64, avg: f32) f32 {
     var acc: f32 = 0.0;
     for (samples) |sample| {
-        const diff = avg - @floatFromInt(f32, sample);
+        const diff = avg - @as(f32, @floatFromInt(sample));
         acc += diff * diff;
     }
     return acc;
 }
 /// sample variance
 pub fn variance(samples: []const u64, avg: f32) f32 {
-    return totalSquaredError(samples, avg) / @floatFromInt(f32, samples.len - 1);
+    return totalSquaredError(samples, avg) / @as(f32, @floatFromInt(samples.len - 1));
 }
 
 /// sample standard deviation
@@ -34,21 +34,21 @@ pub fn correctedSampleStdDev(samples: []const u64, avg: f32) f32 {
 pub fn median(samples: []u64) f32 {
     std.sort.heap(u64, samples, {}, comptime std.sort.asc(u64));
     return if (samples.len % 2 == 0)
-        @floatFromInt(f32, (samples[samples.len / 2 - 1] + samples[samples.len / 2])) / 2
+        @floatFromInt((samples[samples.len / 2 - 1] + samples[samples.len / 2]) / 2)
     else
-        @floatFromInt(f32, samples[samples.len / 2]);
+        @floatFromInt(samples[samples.len / 2]);
 }
 
 /// median absolute deviation central tendency
 /// modifies `samples`, make a copy if you need to keep the original data
 pub fn medianAbsDev(samples: []u64, centre: f32) f32 {
     for (samples) |*sample| {
-        const val = @floatFromInt(f32, sample.*);
+        const val: f32 = @floatFromInt(sample.*);
         // WARNING: cast will bias result
         sample.* = if (val > centre)
-            @intFromFloat(u64, val - centre)
+            @intFromFloat(val - centre)
         else
-            @intFromFloat(u64, centre - val);
+            @intFromFloat(centre - val);
     }
     return median(samples);
 }
@@ -56,7 +56,7 @@ pub fn medianAbsDev(samples: []u64, centre: f32) f32 {
 /// calculate the z-score
 /// For the actual z-score, call as zScore(stddev, mean, val).
 pub fn zScore(dispersion: f32, centre: f32, val: u64) f32 {
-    const diff = @floatFromInt(f32, val) - centre;
+    const diff = @as(f32, @floatFromInt(val)) - centre;
     return diff / dispersion;
 }
 

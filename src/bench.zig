@@ -73,7 +73,7 @@ pub const Samples = struct {
         const slice = self.multi_array_list.slice();
         var result: RunStats = undefined;
         inline for (sample_fields, 0..) |field, i| {
-            const values = slice.items(@enumFromInt(std.meta.FieldEnum(Sample), i));
+            const values = slice.items(@enumFromInt(i));
             const avg = stats.mean(values);
             const std_dev = stats.correctedSampleStdDev(values, avg);
             @field(result, field.name) = Statistics{
@@ -147,7 +147,11 @@ pub const Report = struct {
             \\    discarded {d} outliers from {d} runs ({d:.2}% of total runs)
             \\
         ;
-        const pct = @floatFromInt(f32, value.discarded_runs) / @floatFromInt(f32, value.total_runs) * 100;
+        const pct = pct: {
+            const numerator: f32 = @floatFromInt(value.discarded_runs);
+            const denominator: f32 = @floatFromInt(value.total_runs);
+            break :pct numerator / denominator * 100;
+        };
         try writer.print(header_fmt, .{ value.name, value.discarded_runs, value.total_runs, pct });
         const counter_fmt =
             \\      {s}:
@@ -160,8 +164,8 @@ pub const Report = struct {
             const counter_stats = @field(value.results, field.name);
             try writer.print(counter_fmt, .{
                 field.name,
-                std.fmt.fmtDuration(@intFromFloat(u64, counter_stats.mean)),
-                std.fmt.fmtDuration(@intFromFloat(u64, counter_stats.std_dev)),
+                std.fmt.fmtDuration(@intFromFloat(counter_stats.mean)),
+                std.fmt.fmtDuration(@intFromFloat(counter_stats.std_dev)),
                 counter_stats.n_samples,
             });
         }
@@ -236,7 +240,7 @@ pub fn Benchmark(comptime Func: type) type {
                 var buf = try self.allocator.alloc(u64, max_len);
                 defer self.allocator.free(buf);
                 inline for (sample_fields, 0..) |_, i| {
-                    const data = slice.items(@enumFromInt(std.meta.FieldEnum(Sample), i));
+                    const data = slice.items(@enumFromInt(i));
                     std.mem.copy(u64, buf, data);
                     centre[i] = stats.median(buf);
                     dispersion[i] = stats.medianAbsDev(buf, centre[i]);

@@ -50,9 +50,9 @@ pub const Instant = struct {
     /// This also assumes that the time that has passed between both Instants fits inside a u64 (~585 yrs).
     pub fn since(self: Instant, earlier: Instant) u64 {
         // Convert timespec diff to ns
-        const seconds = @intCast(u64, self.timestamp.tv_sec - earlier.timestamp.tv_sec);
-        const elapsed = (seconds * ns_per_s) + @intCast(u32, self.timestamp.tv_nsec);
-        return elapsed - @intCast(u32, earlier.timestamp.tv_nsec);
+        const seconds: u64 = @intCast(self.timestamp.tv_sec - earlier.timestamp.tv_sec);
+        const elapsed = (seconds * ns_per_s) + @as(u32, @intCast(self.timestamp.tv_nsec));
+        return elapsed - @as(u32, @intCast(earlier.timestamp.tv_nsec));
     }
 };
 

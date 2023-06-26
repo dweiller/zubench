@@ -13,10 +13,10 @@ pub fn fib(n: u32) u32 {
 pub fn fibFast(n: u32) u32 {
     const phi = (1.0 + @sqrt(5.0)) / 2.0;
     const psi = (1.0 - @sqrt(5.0)) / 2.0;
-    const float_n = @floatFromInt(f32, n);
+    const float_n: f32 = @floatFromInt(n);
     const phi_n = std.math.pow(f32, phi, float_n);
     const psi_n = std.math.pow(f32, psi, float_n);
-    return @intFromFloat(u32, (phi_n - psi_n) / @sqrt(5.0));
+    return @intFromFloat((phi_n - psi_n) / @sqrt(5.0));
 }
 
 test "fibFast" {
