@@ -37,7 +37,7 @@ pub fn build(b: *std.Build) void {
     const bench_step = b.step("run", "Run the examples");
 
     for (examples) |example| {
-        const install = b.addInstallArtifact(example);
+        const install = b.addInstallArtifact(example, .{});
         const run_cmd = b.addRunArtifact(example);
 
         // NOTE: this works around Zig issue #15119 and should be removed when
