@@ -237,11 +237,11 @@ pub fn Benchmark(comptime Func: type) type {
             var dispersion: [sample_fields.len]f32 = undefined;
             const slice = mul_ar.slice();
             {
-                var buf = try self.allocator.alloc(u64, max_len);
+                const buf = try self.allocator.alloc(u64, max_len);
                 defer self.allocator.free(buf);
                 inline for (sample_fields, 0..) |_, i| {
                     const data = slice.items(@enumFromInt(i));
-                    std.mem.copy(u64, buf, data);
+                    @memcpy(buf, data);
                     centre[i] = stats.median(buf);
                     dispersion[i] = stats.medianAbsDev(buf, centre[i]);
                 }

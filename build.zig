@@ -1,25 +1,26 @@
 const std = @import("std");
 
 pub fn build(b: *std.Build) void {
-    // Standard release options allow the person running `zig build` to select
-    // between Debug, ReleaseSafe, ReleaseFast, and ReleaseSmall.
-    const mode = b.standardOptimizeOption(.{});
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
 
     const zubench = b.addModule("zubench", .{
-        .source_file = .{ .path = "src/bench.zig" },
+        .root_source_file = .{ .path = "src/bench.zig" },
     });
 
     const fib2 = b.addExecutable(.{
         .name = "fib2",
         .root_source_file = .{ .path = "examples/fib2.zig" },
-        .optimize = mode,
+        .target = target,
+        .optimize = optimize,
     });
-    fib2.addModule("zubench", zubench);
+    fib2.root_module.addImport("zubench", zubench);
 
     const fib_build = addBench(
         b,
         "examples/fib_build.zig",
-        .ReleaseSafe,
+        target,
+        optimize,
         zubench,
         &.{},
     );
@@ -27,7 +28,7 @@ pub fn build(b: *std.Build) void {
     const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe, zubench);
     fib_test.filter = "fib";
 
-    const examples = [_]*std.Build.CompileStep{
+    const examples = [_]*std.Build.Step.Compile{
         fib2,
         fib_build,
         fib_test,
@@ -53,7 +54,7 @@ pub fn build(b: *std.Build) void {
 
     const main_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/bench.zig" },
-        .optimize = mode,
+        .optimize = optimize,
     });
     const run_main_tests = b.addRunArtifact(main_tests);
 
@@ -70,27 +71,29 @@ const bench_runner_path = rootDir() ++ "/src/bench_runner.zig";
 pub fn addBench(
     b: *std.Build,
     path: []const u8,
+    target: std.Build.ResolvedTarget,
     mode: std.builtin.OptimizeMode,
     zubench_mod: *std.Build.Module,
-    dependencies: []const std.Build.ModuleDependency,
-) *std.Build.CompileStep {
+    dependencies: []const std.Build.Module.Import,
+) *std.Build.Step.Compile {
     const name = benchExeName(b.allocator, path, mode);
-    var deps = b.allocator.alloc(std.build.ModuleDependency, dependencies.len + 1) catch unreachable;
-    std.mem.copy(std.build.ModuleDependency, deps, dependencies);
+    var deps = b.allocator.alloc(std.Build.Module.Import, dependencies.len + 1) catch unreachable;
+    @memcpy(deps[0..dependencies.len], dependencies);
 
     deps[deps.len - 1] = .{ .name = "zubench", .module = zubench_mod };
     const root = b.createModule(.{
-        .source_file = .{ .path = path },
-        .dependencies = deps,
+        .root_source_file = .{ .path = path },
+        .imports = deps,
     });
 
     const exe = b.addExecutable(.{
         .name = name,
         .root_source_file = .{ .path = bench_runner_path },
+        .target = target,
         .optimize = mode,
     });
-    exe.addModule("@bench", root);
-    exe.addModule("zubench", zubench_mod);
+    exe.root_module.addImport("@bench", root);
+    exe.root_module.addImport("zubench", zubench_mod);
 
     return exe;
 }
@@ -100,7 +103,7 @@ pub fn addTestBench(
     path: []const u8,
     mode: std.builtin.OptimizeMode,
     zubench_mod: *std.Build.Module,
-) *std.Build.CompileStep {
+) *std.Build.Step.Compile {
     const name = benchExeName(b.allocator, path, mode);
 
     const exe = b.addTest(.{
@@ -109,7 +112,7 @@ pub fn addTestBench(
         .optimize = mode,
         .test_runner = bench_runner_path,
     });
-    exe.addModule("zubench", zubench_mod);
+    exe.root_module.addImport("zubench", zubench_mod);
 
     return exe;
 }
