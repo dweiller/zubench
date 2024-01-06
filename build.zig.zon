@@ -1,0 +1,5 @@
+.{
+    .name = "zubench",
+    .version = "0.0.0",
+    .paths = .{ "build.zig.zon", "build.zig", "src", "examples", "README.md", "LICENSE" },
+}
