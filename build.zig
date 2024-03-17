@@ -26,7 +26,7 @@ pub fn build(b: *std.Build) void {
     );
 
     const fib_test = addTestBench(b, "examples/fib.zig", .ReleaseSafe, zubench);
-    fib_test.filter = "fib";
+    fib_test.filters = &.{"fib"};
 
     const examples = [_]*std.Build.Step.Compile{
         fib2,

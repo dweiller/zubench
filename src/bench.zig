@@ -36,7 +36,7 @@ fn StructArray(comptime T: type) type {
     }
     return @Type(.{
         .Struct = .{
-            .layout = .Auto,
+            .layout = .auto,
             .fields = &fields,
             .decls = &.{},
             .is_tuple = false,
