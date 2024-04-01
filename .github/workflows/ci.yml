@@ -9,11 +9,14 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron: '17 15 * * 0'
+    - cron: '17 15 * * 4'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,6 +27,7 @@ jobs:
            version: master
 
       - name: Check formatting
+        if: ${{ runner.os != 'Windows' }}
         run: zig fmt --check .
 
       - name: Run tests
