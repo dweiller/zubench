@@ -1,6 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const os = std.os;
+const posix = std.posix;
 
 const ns_per_s = 1_000_000_000;
 
@@ -12,28 +12,28 @@ pub const Clock = enum {
     pub fn clockID(self: Clock) i32 {
         return switch (self) {
             .real => switch (builtin.os.tag) {
-                .macos, .ios, .tvos, .watchos => os.CLOCK.UPTIME_RAW,
-                .freebsd, .dragonfly => os.CLOCK.MONOTONIC_FAST,
-                .linux => os.CLOCK.BOOTTIME,
+                .macos, .ios, .tvos, .watchos => posix.CLOCK.UPTIME_RAW,
+                .freebsd, .dragonfly => posix.CLOCK.MONOTONIC_FAST,
+                .linux => posix.CLOCK.BOOTTIME,
                 .windows => @compileError("windows is not supported"),
                 else => posix.CLOCK.MONOTONIC,
             },
-            .process => os.CLOCK.PROCESS_CPUTIME_ID,
-            .thread => os.CLOCK.THREAD_CPUTIME_ID,
+            .process => posix.CLOCK.PROCESS_CPUTIME_ID,
+            .thread => posix.CLOCK.THREAD_CPUTIME_ID,
         };
     }
 };
 
 // this is an adaptation of std.time.Instant
 pub const Instant = struct {
-    timestamp: os.timespec,
+    timestamp: posix.timespec,
 
     /// Queries the system for the current moment of time as an Instant.
     /// This is not guaranteed to be monotonic or steadily increasing, but for most implementations it is.
     /// Returns `error.Unsupported` when a suitable clock is not detected.
     pub fn now(clock_id: i32) error{Unsupported}!Instant {
-        var ts: os.timespec = undefined;
-        os.clock_gettime(clock_id, &ts) catch return error.Unsupported;
+        var ts: posix.timespec = undefined;
+        posix.clock_gettime(clock_id, &ts) catch return error.Unsupported;
         return Instant{ .timestamp = ts };
     }
 
