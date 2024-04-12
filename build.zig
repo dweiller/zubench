@@ -110,7 +110,7 @@ pub fn addTestBench(
         .name = name,
         .root_source_file = .{ .path = path },
         .optimize = mode,
-        .test_runner = bench_runner_path,
+        .test_runner = .{ .path = bench_runner_path },
     });
     exe.root_module.addImport("zubench", zubench_mod);
 
