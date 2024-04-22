@@ -19,11 +19,11 @@ pub fn fibFast(n: u32) u32 {
     return @intFromFloat((phi_n - psi_n) / @sqrt(5.0));
 }
 
-test "fibFast" {
+test "bench fibFast" {
     _ = fibFast(35);
 }
 
-test "fib" {
+test "bench fib" {
     _ = fib(35);
 }
 

@@ -33,7 +33,7 @@ pub fn build(b: *std.Build) void {
         zubench,
         b.path("src/bench_runner.zig"),
     );
-    fib_test.filters = &.{"fib"};
+    fib_test.filters = &.{"bench"};
 
     const examples = [_]*std.Build.Step.Compile{
         fib2,
