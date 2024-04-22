@@ -2,14 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "zig-0.12" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "zig-0.12" ]
 
   workflow_dispatch:
-
-  schedule:
-    - cron: '17 15 * * 4'
 
 jobs:
   build:
@@ -24,7 +21,7 @@ jobs:
       - name: Setup Zig
         uses: goto-bus-stop/setup-zig@v2
         with:
-           version: master
+           version: 0.12.0
 
       - name: Check formatting
         if: ${{ runner.os != 'Windows' }}
