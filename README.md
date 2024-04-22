@@ -39,6 +39,8 @@ Some attempt has been made to work on the below platforms; those with a '️️�
 
 ## usage
 
+The *main* branch follows Zig's master branch, for Zig 0.12 use the *zig-0.12* branch.
+
 The simplest way to create and run benchmarks is using one of the Zig build system integrations. There are currently two integrations, one utilising the Zig test system, and one utilising public declarations.
 
 Both integrations will compile an executable that takes a collection of functions to benchmark, runs them repeatedly and reports timing statistics. The differences between the two integrations are how you define benchmarks in your source files, and how benchmarking options are determined.
