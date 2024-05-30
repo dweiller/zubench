@@ -26,7 +26,7 @@ fn testRunner() !void {
     const stderr = std.io.getStdErr().writer();
     try stderr.print("Running benchmarks ({s} mode)\n", .{@tagName(builtin.mode)});
 
-    var progress = std.Progress{};
+    const progress = std.Progress.start(.{});
     var results = try std.ArrayList(bench.Report).initCapacity(allocator, builtin.test_functions.len);
     defer results.deinit();
 
@@ -42,7 +42,7 @@ fn testRunner() !void {
             .{},
             options,
             max_samples,
-            &progress,
+            progress,
         );
         defer benchmark.deinit();
         results.appendAssumeCapacity(try benchmark.run());
@@ -63,7 +63,7 @@ fn standalone() !void {
     const stderr = std.io.getStdErr().writer();
     try stderr.print("Running benchmarks ({s} mode)\n", .{@tagName(builtin.mode)});
 
-    var progress = std.Progress{};
+    const progress = std.Progress.start(.{});
 
     const benchmarks = @typeInfo(@TypeOf(root.benchmarks)).Struct.fields;
     var results = std.BoundedArray(bench.Report, benchmarks.len).init(0) catch unreachable;
@@ -77,7 +77,7 @@ fn standalone() !void {
             spec.args,
             spec.opts,
             spec.max_samples,
-            &progress,
+            progress,
         );
         defer benchmark.deinit();
         results.appendAssumeCapacity(try benchmark.run());

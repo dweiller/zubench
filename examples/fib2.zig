@@ -9,7 +9,7 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var progress = std.Progress{};
+    const progress = std.Progress.start(.{});
 
     var bm = try zubench.Benchmark(@TypeOf(fib.fib)).init(
         allocator,
@@ -18,7 +18,7 @@ pub fn main() !void {
         .{35},
         .{ .outlier_detection = .none }, //disable MAD-base outlier detection
         20,
-        &progress,
+        progress,
     );
     const report = try bm.run();
     bm.deinit();
@@ -30,7 +30,7 @@ pub fn main() !void {
         .{35},
         .{},
         1_000_000,
-        &progress,
+        progress,
     );
     const report_fast = try bm_fast.run();
     bm_fast.deinit();
