@@ -132,8 +132,8 @@ The above snippet would cause two benchmarks to be run called "benchmark func1" 
 It is also relatively straightforward to write a standalone executable to perform benchmarks without using the build system integration. To create a benchmark for a function `func`, run it (measuring process and wall time) and obtain a report, all that is needed is
 
 ```zig
-var progress = std.Progress{};
-var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, .{}, max_samples, &progress);
+var progress = std.Progress.start(.{});
+var bm = try Benchmark(func).init(allocator, "benchmark name", .{ func_arg_1, … }, .{}, max_samples, progress);
 const report = bm.run();
 bm.deinit();
 ```

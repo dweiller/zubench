@@ -188,7 +188,7 @@ pub fn Benchmark(comptime Func: type) type {
         func: *const Func,
         args: Args,
         options: Options,
-        progress: *std.Progress,
+        progress: std.Progress.Node,
         ctx: Context,
 
         pub const Args = std.meta.ArgsTuple(Func);
@@ -201,7 +201,7 @@ pub fn Benchmark(comptime Func: type) type {
             args: Args,
             options: Options,
             max_samples: usize,
-            progress: *std.Progress,
+            progress: std.Progress.Node,
         ) error{ TimerUnsupported, OutOfMemory }!@This() {
             const ctx = try Context.init(allocator, max_samples);
             return @This(){
@@ -269,7 +269,6 @@ pub fn Benchmark(comptime Func: type) type {
             const mul_ar = &self.ctx.samples.multi_array_list;
             const max_iterations = mul_ar.capacity;
             const node = self.progress.start(self.name, max_iterations);
-            node.activate();
 
             while (mul_ar.len < mul_ar.capacity) {
                 resetCounters(&self.ctx.counters);
