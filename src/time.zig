@@ -9,7 +9,7 @@ pub const Clock = enum {
     process,
     thread,
 
-    pub fn clockID(self: Clock) i32 {
+    pub fn clockID(self: Clock) posix.clockid_t {
         return switch (self) {
             .real => switch (builtin.os.tag) {
                 .macos, .ios, .tvos, .watchos => posix.CLOCK.UPTIME_RAW,
@@ -31,7 +31,7 @@ pub const Instant = struct {
     /// Queries the system for the current moment of time as an Instant.
     /// This is not guaranteed to be monotonic or steadily increasing, but for most implementations it is.
     /// Returns `error.Unsupported` when a suitable clock is not detected.
-    pub fn now(clock_id: i32) error{Unsupported}!Instant {
+    pub fn now(clock_id: posix.clockid_t) error{Unsupported}!Instant {
         var ts: posix.timespec = undefined;
         posix.clock_gettime(clock_id, &ts) catch return error.Unsupported;
         return Instant{ .timestamp = ts };
@@ -59,7 +59,7 @@ pub const Instant = struct {
 
 // this is adapted from std.time.Timer
 pub const Timer = struct {
-    clock_id: i32,
+    clock_id: posix.clockid_t,
     started: Instant,
     previous: Instant,
 
@@ -68,7 +68,7 @@ pub const Timer = struct {
     /// Initialize the timer by querying for a supported clock.
     /// Returns `error.TimerUnsupported` when such a clock is unavailable.
     /// This should only fail in hostile environments such as linux seccomp misuse.
-    pub fn start(clock_id: i32) Error!Timer {
+    pub fn start(clock_id: posix.clockid_t) Error!Timer {
         const current = Instant.now(clock_id) catch return error.TimerUnsupported;
         return Timer{ .clock_id = clock_id, .started = current, .previous = current };
     }
