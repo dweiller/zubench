@@ -65,7 +65,7 @@ fn standalone() !void {
 
     const progress = std.Progress.start(.{});
 
-    const benchmarks = @typeInfo(@TypeOf(root.benchmarks)).Struct.fields;
+    const benchmarks = @typeInfo(@TypeOf(root.benchmarks)).@"struct".fields;
     var results = std.BoundedArray(bench.Report, benchmarks.len).init(0) catch unreachable;
 
     inline for (benchmarks) |field| {
