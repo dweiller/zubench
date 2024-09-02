@@ -39,9 +39,9 @@ pub const Instant = struct {
 
     /// Quickly compares two instances between each other.
     pub fn order(self: Instant, other: Instant) std.math.Order {
-        var ord = std.math.order(self.timestamp.tv_sec, other.timestamp.tv_sec);
+        var ord = std.math.order(self.timestamp.sec, other.timestamp.sec);
         if (ord == .eq) {
-            ord = std.math.order(self.timestamp.tv_nsec, other.timestamp.tv_nsec);
+            ord = std.math.order(self.timestamp.nsec, other.timestamp.nsec);
         }
         return ord;
     }
@@ -51,9 +51,9 @@ pub const Instant = struct {
     /// This also assumes that the time that has passed between both Instants fits inside a u64 (~585 yrs).
     pub fn since(self: Instant, earlier: Instant) u64 {
         // Convert timespec diff to ns
-        const seconds: u64 = @intCast(self.timestamp.tv_sec - earlier.timestamp.tv_sec);
-        const elapsed = (seconds * ns_per_s) + @as(u32, @intCast(self.timestamp.tv_nsec));
-        return elapsed - @as(u32, @intCast(earlier.timestamp.tv_nsec));
+        const seconds: u64 = @intCast(self.timestamp.sec - earlier.timestamp.sec);
+        const elapsed = (seconds * ns_per_s) + @as(u32, @intCast(self.timestamp.nsec));
+        return elapsed - @as(u32, @intCast(earlier.timestamp.nsec));
     }
 };
 
