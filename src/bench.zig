@@ -35,7 +35,7 @@ fn StructArray(comptime T: type) type {
         };
     }
     return @Type(.{
-        .Struct = .{
+        .@"struct" = .{
             .layout = .auto,
             .fields = &fields,
             .decls = &.{},
@@ -273,8 +273,8 @@ pub fn Benchmark(comptime Func: type) type {
             while (mul_ar.len < mul_ar.capacity) {
                 resetCounters(&self.ctx.counters);
 
-                switch (@typeInfo(@typeInfo(Func).Fn.return_type.?)) {
-                    .ErrorUnion => {
+                switch (@typeInfo(@typeInfo(Func).@"fn".return_type.?)) {
+                    .error_union => {
                         _ = @call(.never_inline, self.func, self.args) catch |err| {
                             std.debug.panic("Benchmark {s} returned error {s}", .{ self.name, @errorName(err) });
                         };
@@ -312,7 +312,7 @@ pub fn Benchmark(comptime Func: type) type {
 }
 
 pub fn Spec(comptime func: anytype) type {
-    if (@typeInfo(@TypeOf(func)).Fn.params.len == 0)
+    if (@typeInfo(@TypeOf(func)).@"fn".params.len == 0)
         return struct {
             args: std.meta.ArgsTuple(@TypeOf(func)) = .{},
             max_samples: usize,
