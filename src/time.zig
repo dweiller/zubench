@@ -32,8 +32,7 @@ pub const Instant = struct {
     /// This is not guaranteed to be monotonic or steadily increasing, but for most implementations it is.
     /// Returns `error.Unsupported` when a suitable clock is not detected.
     pub fn now(clock_id: posix.clockid_t) error{Unsupported}!Instant {
-        var ts: posix.timespec = undefined;
-        posix.clock_gettime(clock_id, &ts) catch return error.Unsupported;
+        const ts = posix.clock_gettime(clock_id) catch return error.Unsupported;
         return Instant{ .timestamp = ts };
     }
 

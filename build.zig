@@ -145,7 +145,7 @@ fn addTestBenchInner(
         .name = name,
         .root_source_file = b.path(path),
         .optimize = mode,
-        .test_runner = bench_runner_path,
+        .test_runner = .{ .path = bench_runner_path, .mode = .simple },
     });
     exe.root_module.addImport("zubench", zubench_mod);
 
