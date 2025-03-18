@@ -29,7 +29,7 @@ fn StructArray(comptime T: type) type {
         field.* = .{
             .name = @tagName(spec_elt),
             .type = T,
-            .default_value = null,
+            .default_value_ptr = null,
             .is_comptime = false,
             .alignment = @alignOf(T),
         };
