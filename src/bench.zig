@@ -89,8 +89,7 @@ pub const Samples = struct {
 fn startCounters() !Counters {
     var counters: Counters = undefined;
     for (&counters, sample_spec) |*counter, spec_elt| {
-        const clock_id = spec_elt.clockID();
-        counter.* = try time.Timer.start(clock_id);
+        counter.* = try time.Timer.start(spec_elt);
     }
     return counters;
 }
