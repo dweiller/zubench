@@ -126,8 +126,10 @@ pub fn addTestBench(
     const zubench_dep = b.dependencyFromBuildZig(@This(), .{});
     const zubench_mod = zubench_dep.module("zubench");
     const bench_runner_path: std.Build.LazyPath = .{
-        .dependency = zubench_dep,
-        .sub_path = "src/bench_runner.zig",
+        .dependency = .{
+            .dependency = zubench_dep,
+            .sub_path = "src/bench_runner.zig",
+        },
     };
     return addTestBenchInner(b, path, mode, zubench_mod, bench_runner_path);
 }
